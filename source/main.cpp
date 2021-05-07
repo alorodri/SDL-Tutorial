@@ -15,9 +15,25 @@ SDL_Surface* gScreenSurface = nullptr;
 // image to load
 SDL_Surface* gImage = nullptr;
 
+// main quit flag
+bool quit;
+// poll events
+SDL_Event e;
+
 int main(int argc, char *argv[]) {
-	init();
-	loadMedia();
+	if (init()) {
+		if (loadMedia()) {
+			SDL_BlitSurface(gImage, nullptr, gScreenSurface, nullptr);
+			SDL_UpdateWindowSurface(gWindow);
+			while (!quit) {
+				while (SDL_PollEvent(&e)) {
+					if (e.type == SDL_QUIT) {
+						quit = true;
+					}
+				}
+			}
+		}
+	}
 	close();
 	return 0;
 }
@@ -50,10 +66,21 @@ bool init() {
 }
 
 void close() {
+	SDL_FreeSurface(gImage);
+	gImage = nullptr;
+
 	SDL_DestroyWindow(gWindow);
+	gWindow = nullptr;
+
 	SDL_Quit();
 }
 
 bool loadMedia() {
+	gImage = SDL_LoadBMP("resources/sonic.bmp");
+	if (!gImage) {
+		std::cout << "Unable to load image 'sonic.bmp', SDL Error: " << SDL_GetError() << "\n";
+		return false;
+	}
+
 	return true;
 }

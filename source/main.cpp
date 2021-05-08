@@ -23,13 +23,13 @@ SDL_Event e;
 int main(int argc, char *argv[]) {
 	if (init()) {
 		if (loadMedia()) {
-			SDL_BlitSurface(gImage, nullptr, gScreenSurface, nullptr);
-			SDL_UpdateWindowSurface(gWindow);
 			while (!quit) {
 				while (SDL_PollEvent(&e)) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
 					}
+					SDL_BlitSurface(gImage, nullptr, gScreenSurface, nullptr);
+					SDL_UpdateWindowSurface(gWindow);
 				}
 			}
 		}

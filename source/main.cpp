@@ -10,6 +10,8 @@ bool init();
 bool loadMedia();
 void close();
 
+SDL_Rect& stretchedRectDimensions();
+
 SDL_Window* gWindow = nullptr;
 // surface contained by the window
 SDL_Surface* gScreenSurface = nullptr;
@@ -65,7 +67,8 @@ int main(int argc, char *argv[]) {
 							break;
 						}
 					}
-					SDL_BlitSurface(gLoadedImage, nullptr, gScreenSurface, nullptr);
+					SDL_Rect rect = stretchedRectDimensions();
+					SDL_BlitScaled(gLoadedImage, nullptr, gScreenSurface, &rect);
 					SDL_UpdateWindowSurface(gWindow);
 				}
 			}
@@ -112,12 +115,27 @@ void close() {
 	SDL_Quit();
 }
 
+SDL_Surface* loadSurface(const std::string path) {
+	SDL_Surface* optimizedSurface = nullptr;
+	SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
+	if (loadedSurface) {
+		optimizedSurface = SDL_ConvertSurface(loadedSurface, gScreenSurface->format, 0);
+		if (!optimizedSurface) {
+			std::cout << "Unable to optimize the image, SDL Error: " << SDL_GetError();
+		}
+
+		SDL_FreeSurface(loadedSurface);
+	}
+
+	return optimizedSurface;
+}
+
 bool loadMedia() {
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DEFAULT] = SDL_LoadBMP(SONIC_BMP);
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_UP] = SDL_LoadBMP(CATTO_BMP);
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DOWN] = SDL_LoadBMP(SMILE_BMP);
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_LEFT] = SDL_LoadBMP(DOGGI_BMP);
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_RIGHT] = SDL_LoadBMP(SKINNER_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DEFAULT] = loadSurface(SONIC_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_UP] = loadSurface(CATTO_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DOWN] = loadSurface(SMILE_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_LEFT] = loadSurface(DOGGI_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_RIGHT] = loadSurface(SKINNER_BMP);
 	if (!gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DEFAULT]) {
 		std::cout << "Unable to load image '" << SONIC_BMP << "', SDL Error: " << SDL_GetError() << "\n";
 		return false;
@@ -140,4 +158,13 @@ bool loadMedia() {
 	}
 
 	return true;
+}
+
+SDL_Rect& stretchedRectDimensions() {
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = SCREEN_WIDTH;
+	rect.h = SCREEN_HEIGHT;
+	return rect;
 }

@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_image.h>
 
 #include <iostream>
 #include <string>
@@ -25,6 +26,7 @@ constexpr char SONIC_BMP[] = "resources/sonic.bmp";
 constexpr char CATTO_BMP[] = "resources/catto.bmp";
 constexpr char SMILE_BMP[] = "resources/smile.bmp";
 constexpr char DOGGI_BMP[] = "resources/doggi.bmp";
+constexpr char DOGGI_PNG[] = "resources/doggi.png";
 constexpr char SKINNER_BMP[] = "resources/skinner.bmp";
 
 enum KeyPressSurfaces {
@@ -98,7 +100,14 @@ bool init() {
 			return false;
 		}
 		else {
-			gScreenSurface = SDL_GetWindowSurface(gWindow);
+			int imgFlags = IMG_INIT_PNG;
+			if (!(IMG_Init(imgFlags) & imgFlags)) {
+				std::cout << "SDL Image couldn't initialize, SDL Error: " << IMG_GetError() << "\n";
+				return false;
+			}
+			else {
+				gScreenSurface = SDL_GetWindowSurface(gWindow);
+			}
 		}
 	}
 
@@ -117,7 +126,7 @@ void close() {
 
 SDL_Surface* loadSurface(const std::string path) {
 	SDL_Surface* optimizedSurface = nullptr;
-	SDL_Surface* loadedSurface = SDL_LoadBMP(path.c_str());
+	SDL_Surface* loadedSurface = IMG_Load(path.c_str());
 	if (loadedSurface) {
 		optimizedSurface = SDL_ConvertSurface(loadedSurface, gScreenSurface->format, 0);
 		if (!optimizedSurface) {
@@ -125,6 +134,9 @@ SDL_Surface* loadSurface(const std::string path) {
 		}
 
 		SDL_FreeSurface(loadedSurface);
+	}
+	else {
+		std::cout << "Unable to load image, IMG Error: " << IMG_GetError();
 	}
 
 	return optimizedSurface;
@@ -134,7 +146,7 @@ bool loadMedia() {
 	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DEFAULT] = loadSurface(SONIC_BMP);
 	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_UP] = loadSurface(CATTO_BMP);
 	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DOWN] = loadSurface(SMILE_BMP);
-	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_LEFT] = loadSurface(DOGGI_BMP);
+	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_LEFT] = loadSurface(DOGGI_PNG);
 	gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_RIGHT] = loadSurface(SKINNER_BMP);
 	if (!gSurfaceKeyImages[KeyPressSurfaces::KEY_PRESS_SURFACE_DEFAULT]) {
 		std::cout << "Unable to load image '" << SONIC_BMP << "', SDL Error: " << SDL_GetError() << "\n";
